@@ -46,8 +46,9 @@ app.get('/', (req, res) => {
 
 function convertMovToMp4(inputPath, outputPath) {
   return new Promise((resolve, reject) => {
+    // Use stream copy (no re-encode) — iPhone MOV is already H.264+AAC, just remux into MP4 container
     exec(
-      `ffmpeg -y -i "${inputPath}" -c:v libx264 -preset fast -crf 22 -c:a aac -movflags +faststart "${outputPath}"`,
+      `ffmpeg -y -i "${inputPath}" -c copy -movflags +faststart "${outputPath}"`,
       (err, stdout, stderr) => {
         if (err) {
           console.error('ffmpeg error:', stderr);
