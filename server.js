@@ -44,8 +44,42 @@ app.get('/', (req, res) => {
   res.send(getHTML());
 });
 
-app.post('/upload', upload.array('files'), (req, res) => {
-  const uploaded = req.files.map(f => ({ name: f.originalname, saved: f.filename, size: f.size }));
+function convertMovToMp4(inputPath, outputPath) {
+  return new Promise((resolve, reject) => {
+    exec(
+      `ffmpeg -y -i "${inputPath}" -c:v libx264 -preset fast -crf 22 -c:a aac -movflags +faststart "${outputPath}"`,
+      (err, stdout, stderr) => {
+        if (err) {
+          console.error('ffmpeg error:', stderr);
+          return reject(err);
+        }
+        try { fs.unlinkSync(inputPath); } catch (e) { console.error('unlink failed:', e.message); }
+        resolve();
+      }
+    );
+  });
+}
+
+app.post('/upload', upload.array('files'), async (req, res) => {
+  const uploaded = [];
+  for (const f of req.files) {
+    const ext = path.extname(f.originalname).toLowerCase();
+    if (ext === '.mov') {
+      const mp4Filename = f.filename.replace(/\.mov$/i, '.mp4');
+      const inputPath = path.join(UPLOADS_DIR, f.filename);
+      const outputPath = path.join(UPLOADS_DIR, mp4Filename);
+      try {
+        await convertMovToMp4(inputPath, outputPath);
+        const stat = fs.statSync(outputPath);
+        uploaded.push({ name: f.originalname.replace(/\.mov$/i, '.mp4'), saved: mp4Filename, size: stat.size });
+      } catch (e) {
+        console.error('MOV→MP4 conversion failed:', e.message);
+        uploaded.push({ name: f.originalname, saved: f.filename, size: f.size });
+      }
+    } else {
+      uploaded.push({ name: f.originalname, saved: f.filename, size: f.size });
+    }
+  }
   res.json({ success: true, files: uploaded });
 });
 
@@ -61,10 +95,12 @@ app.post('/text', (req, res) => {
 app.get('/api/texts', (req, res) => res.json(texts));
 
 app.get('/api/files', (req, res) => {
-  const files = fs.readdirSync(UPLOADS_DIR).map(f => {
-    const stat = fs.statSync(path.join(UPLOADS_DIR, f));
-    return { name: f, size: stat.size, time: stat.mtime };
-  }).sort((a, b) => new Date(b.time) - new Date(a.time));
+  const files = fs.readdirSync(UPLOADS_DIR)
+    .filter(f => path.extname(f).toLowerCase() !== '.mov')
+    .map(f => {
+      const stat = fs.statSync(path.join(UPLOADS_DIR, f));
+      return { name: f, size: stat.size, time: stat.mtime };
+    }).sort((a, b) => new Date(b.time) - new Date(a.time));
   res.json(files);
 });
 
