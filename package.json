@@ -1,0 +1,24 @@
+{
+  "name": "localbeam",
+  "version": "1.0.0",
+  "description": "Transfer files and text between Linux and phone over local WiFi — no cables, no cloud.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["file-transfer", "local-network", "wifi", "linux", "mobile", "qr-code"],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/localbeam.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "multer": "^2.1.1",
+    "qrcode": "^1.5.4"
+  }
+}

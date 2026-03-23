@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Auto-generated files
+qr.png
+
+# Files transferred by the app (user data — not tracked)
+received/
+shared/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment / OS
+.env
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
